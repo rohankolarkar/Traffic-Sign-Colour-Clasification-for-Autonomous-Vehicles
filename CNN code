@@ -1,0 +1,95 @@
+#importing the required Deep Learning Parameters
+#To connect the layers in a way that each previous layer is connected to every following layer
+from keras.models import Sequential 
+from keras.layers import Conv2D
+#to select a matrix and to take out only the maximum value(feature) to speed up processing
+from keras.layers import MaxPooling2D
+from keras.layers import Flatten   #to change the dimension as needed
+from keras.layers import Dense,Dropout  #to decide the dimensions of the output and activation function
+
+classifier = Sequential()
+
+#In the first layer,32 filters are used to extract the features,after that deciding the matrix size,activation function 
+#deciding the height and width to which the input image is converted 
+classifier.add(Conv2D(32,kernel_size=(3,3),activation='relu',input_shape=(28,28,3)))
+
+#Now another convolution layer is applied with 64 filters and the same activation function
+classifier.add(Conv2D(64,(3,3),activation='relu'))
+
+
+#MaxPooling is applied to reduce the training time and concentrate on the main feature
+classifier.add(MaxPooling2D(pool_size=(2,2)))
+
+#The image is converted to 1-D using the flatten command
+classifier.add(Flatten())
+
+
+#Dense layer is used to connect the number of neurons mentioned inside the parantheses to each 28 pixel of an image 
+#Alongwith, each colour attribute(Red ,Green,Blue)
+classifier.add(Dense(output_dim = 128, activation = 'relu'))
+classifier.add(Dense(output_dim = 3,activation= 'softmax'))
+
+#The working loop of the deep neural network is defined in this step
+#The input is processed sequentially right from the first layer i.e. the features are extracted step by step
+#When the extraction is complete,what we are mainly looking for is the accuracy of the training and thus the metrics 
+#is defined as accuracy.In this CNN ,three classes are employed hence categorical crossentropy is used.
+#The optimizer performs the function of changing the assigned weights to the neurons and thus increasing the accuracy 
+classifier.compile(optimizer = 'Adam', loss = 'categorical_crossentropy' , metrics = ['accuracy'])
+
+#From here image processing is carried out               
+from keras.preprocessing.image import ImageDataGenerator
+
+#The colour values are divided by 255 because there are a total of 256 colour values but the RGB values supported by the current 
+#framework lie in the range[0,1]
+#Shear range command rotates the images in the anti clockwise direction and zoom range actually zooms in in particular part 
+# of the image randomly
+               
+train_datagen = ImageDataGenerator(
+        rescale=1./255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True)
+#The same procedure is followed to conevert the colour values of the test images too in the range [0,1]              
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+
+#The training data path is given 
+#The batch size for training is decided
+#Class mode is chosen as categorical since three classes are to be classified
+training_set = train_datagen.flow_from_directory(
+            'D:\\dataset\\training',
+            target_size=(28,28),
+            batch_size=32,
+            class_mode='categorical') 
+#The same steps are imlemented for the testng data
+test_set = test_datagen.flow_from_directory(
+        'D:\\dataset\\testing',
+        target_size=(28,28),
+        batch_size=32,
+        class_mode='categorical')
+
+#The trained data is called here
+#Now,the model is tested 
+#The validation images are taken as the test images themselves
+#The number of iterations and batch size is decided
+classifier.fit_generator(training_set,
+                         samples_per_epoch=624,
+                         nb_epoch=50,
+                         validation_data=test_set,
+                         nb_val_samples=135)
+
+
+#The trained model is now checked by predicting the image class fed
+#The required libraries are imported
+import numpy as np
+from keras.preprocessing import image
+#The path of the image to be tested is provided and the image dimensions are modified
+test_image=image.load_img('D:\\dataset\\sampleimage\\yellow3.jfif',target_size=(28,28))
+#The test image is converted to a numpy array 
+test_image=image.img_to_array(test_image)
+test_image=np.expand_dims(test_image,axis=0)
+#The predict command is used to read the class of the test image
+abc=classifier.predict(test_image)
+#Finally the class of the test image is printed
+#{0:Green ,1:Red, 2:Yellow}
+print(np.argmax(abc))

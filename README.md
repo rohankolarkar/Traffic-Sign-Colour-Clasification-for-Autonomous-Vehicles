@@ -3,4 +3,4 @@
 First, one needs to download the YOLO weights from the link provided in the file.
 Once the weights are downloaded, the YOLO algorithm can be run to detect the presence of an actual traffic signal.
 Thereafter, the main code of CNN should be run to classify the colors.
-One may use his/her own dataset for traffic colors and proper changes should be done in order to ensure proper functioning of the code and to obtain expected results.
+One may use his/her own dataset for traffic colors and proper changes should be incorporated in order to ensure proper functioning of the code and to obtain expected results.
